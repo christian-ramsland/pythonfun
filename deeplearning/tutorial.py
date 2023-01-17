@@ -14,6 +14,15 @@ print("Hub version: ", hub.__version__)
 print("GPU is", "available" if tf.config.list_physical_devices('GPU') else "NOT AVAILABLE")
 tf.get_logger().setLevel('ERROR')
 
+"""
+more like a tutorial on babby's first nlp model and using bert to accomplish a similar task.
+first tutorial: https://www.tensorflow.org/hub/tutorials/tf2_text_classification
+second tutorial: https://www.tensorflow.org/text/tutorials/classify_text_with_bert
+
+split certain processes into functions for ease of understanding and organizational purposes.
+main() runs both even though they probably ought to be in separate scripts
+"""
+
 def plot_graphs(history, metric):
   plt.plot(history.history[metric])
   plt.plot(history.history['val_'+metric], '')
@@ -196,7 +205,6 @@ def main():
 def tutorial():
     train_data, test_data = tfds.load(name="imdb_reviews", split=["train", "test", ],
                                       batch_size=-1, as_supervised=True)
-    print(train_data.element_spec)
     train_examples, train_labels = tfds.as_numpy(train_data)
     test_examples, test_labels = tfds.as_numpy(test_data)
     print("Training entries: {}, test entries: {}".format(len(train_examples), len(test_examples)))
