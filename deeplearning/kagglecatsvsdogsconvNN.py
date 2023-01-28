@@ -82,19 +82,19 @@ def preprocess_test(path):
 def main():
     trainpath_unzipped = os.path.abspath(os.path.expanduser('~') + '/.kaggle/dogs-vs-cats/train.zip')
     # doesn't need to unzip every time so this line is commented out
-    # archive_train = tf.keras.utils.get_file(trainpath_unzipped, origin='', extract=True) # unzipped so extract is false - to make this more generalizable set extract to true
+    archive_train = tf.keras.utils.get_file(trainpath_unzipped, origin='', extract=True) # unzipped so extract is false - to make this more generalizable set extract to true
     trainpath = os.path.abspath(os.path.expanduser('~') + '/.keras/datasets/train')
     data_dir_train = pathlib.Path(trainpath).with_suffix('')
     image_count_cat = len(list(data_dir_train.glob('cat*.jpg')))
     image_count_dog = len(list(data_dir_train.glob('dog*.jpg')))
     DATASET_SIZE = image_count_cat + image_count_dog
-    print(list(data_dir_train.glob('cat*.jpg')))
+    # print(list(data_dir_train.glob('cat*.jpg')))
     label_dict = {'cat': 0, 'dog': 1}
     paths = glob.glob(trainpath + '/*.jpg')
 
-    print(get_label(paths[0], label_dict))
+    # print(get_label(paths[0], label_dict))
     labels = [get_label(i, label_dict) for i in paths]
-    print(labels)
+    # print(labels)
 
     training_dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
     training_dataset = training_dataset.shuffle(buffer_size=len(paths)) # amazing resource about exactly this: https://stackoverflow.com/questions/46444018/meaning-of-buffer-size-in-dataset-map-dataset-prefetch-and-dataset-shuffle
@@ -147,13 +147,11 @@ def main():
         epochs=3
     )
 
-    # plotbert(history) # need a new plotting method for this kind of problem
-
     print(model.summary()) # model.summary() with the parens
 
     testpath_unzipped = os.path.abspath(os.path.expanduser('~') + '/.kaggle/dogs-vs-cats/test1.zip')
     # again don't want to do this twice
-    # archive_test = tf.keras.utils.get_file(testpath_unzipped, origin='', extract=True)
+    archive_test = tf.keras.utils.get_file(testpath_unzipped, origin='', extract=True)
     testpath = os.path.abspath(os.path.expanduser('~') + '/.keras/datasets/test1')
     test_paths = glob.glob(testpath + '/*.jpg')
 
