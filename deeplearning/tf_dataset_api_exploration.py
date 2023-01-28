@@ -46,10 +46,15 @@ def get_label(x, label_dict):
     return label_dict[label]
 
 
-def preprocess(x,y):
+def preprocess(x, y):
   img = tf.io.read_file(x)
   img = tf.io.decode_jpeg(img, channels=3)
-  img = tf.cast(img,dtype=tf.float32)
+  img = tf.cast(img, dtype=tf.float32)
+  y = tf.convert_to_tensor(y)
+  y = tf.one_hot(y, depth=2)
+  # https://stats.stackexchange.com/questions/438875/one-hot-encoding-of-a-binary-feature-when-using-xgboost
+  # https://www.tensorflow.org/api_docs/python/tf/one_hot
+  # kind of silly to do a one hot encoding since there's only k=2 unique categories
   return img, y
 
 
@@ -88,13 +93,11 @@ def main():
     train_ds = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
     val_ds = val_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 
-
     num_classes = 2
 
     model = tf.keras.Sequential([
         tf.keras.layers.Rescaling(1. / 255),
-
-        tf.keras.layers.Conv2D(32, 3, activation='relu'),
+        tf.keras.layers.Conv2D(32, 3, activation='relu'), # it's not happy with this layer
         tf.keras.layers.MaxPooling2D(),
         tf.keras.layers.Conv2D(32, 3, activation='relu'),
         tf.keras.layers.MaxPooling2D(),
