@@ -77,6 +77,7 @@ def preprocess_test(path):
     img = tf.image.resize(img, tf.constant([180, 180]))
     img = img[np.newaxis, ...] # knew this would come in handy - actually it didn't I can specify batch size in predict y method
     # actually it did come in handy, specifying batch in predict seems dumb
+    img = tf.cast(img, dtype=tf.float32) # missed this for some reason uhh
     return img
 
 def main():
@@ -98,7 +99,7 @@ def main():
 
     training_dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
     training_dataset = training_dataset.shuffle(buffer_size=len(paths)) # amazing resource about exactly this: https://stackoverflow.com/questions/46444018/meaning-of-buffer-size-in-dataset-map-dataset-prefetch-and-dataset-shuffle
-    training_dataset = training_dataset.map(preprocess).batch(batch_size=32)
+    training_dataset = training_dataset.map(preprocess).batch(batch_size=16)
 
     for x, y in training_dataset.take(1):
         print("x shape=", x.shape, "y shape=", y.shape)
@@ -163,12 +164,14 @@ def main():
         print(idx.shape) # (1, 180, 180, 3) exactly what we wanted to see
 
     predictions = (model.predict(testing_dataset)) # cats is 0, dogs is 1
+    print(predictions[:20])
     predictions_binarized = np.vectorize(lambda pred: int(pred >= 0.5))(predictions)
     print(predictions_binarized)
     predictions_df = pd.DataFrame.from_records(predictions_binarized, columns=['label'])
     predictions_df['id'] = predictions_df.index + 1 # id starts at 1, index at 0
     predictions_df.insert(0, 'id', predictions_df.pop('id'))
     print(predictions_df.head)
+    print(predictions_df[:20])
 
 
 if __name__ == "__main__":
