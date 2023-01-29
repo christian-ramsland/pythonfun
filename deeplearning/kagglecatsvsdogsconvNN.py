@@ -1,17 +1,20 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 import os
-import PIL
-import PIL.Image
 import pathlib
 import matplotlib.pyplot as plt # workaround for image viewing in pycharm
 import glob
 import tensorflow_datasets as tfds
 import pandas as pd
+import tensorflow_hub as hub
 
-from pythonfun.deeplearning.tutorial import plotbert
+
+print("Version: ", tf.__version__)
+print("Eager mode: ", tf.executing_eagerly())
+print("Hub version: ", hub.__version__)
+print("GPU is", "available" if tf.config.list_physical_devices('GPU') else "NOT AVAILABLE")
+tf.get_logger().setLevel('ERROR')
+
 
 """
 more like a tutorial on kaggle and loading/preprocessing image data
@@ -80,6 +83,39 @@ def preprocess_test(path):
     img = tf.cast(img, dtype=tf.float32) # missed this for some reason uhh
     return img
 
+
+def plotbinary(history):
+    history_dict = history.history
+    print(history_dict.keys())
+
+    acc = history_dict['accuracy']
+    val_acc = history_dict['val_accuracy']
+    loss = history_dict['loss']
+    val_loss = history_dict['val_loss']
+
+    epochs = range(1, len(acc) + 1)
+    fig = plt.figure(figsize=(10, 6))
+    fig.tight_layout()
+
+    plt.subplot(2, 1, 1)
+    # r is for "solid red line"
+    plt.plot(epochs, loss, 'r', label='Training loss')
+    # b is for "solid blue line"
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.title('Training and validation loss')
+    # plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.subplot(2, 1, 2)
+    plt.plot(epochs, acc, 'r', label='Training acc')
+    plt.plot(epochs, val_acc, 'b', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='lower right')
+
+
 def main():
     trainpath_unzipped = os.path.abspath(os.path.expanduser('~') + '/.kaggle/dogs-vs-cats/train.zip')
     # doesn't need to unzip every time so this line is commented out
@@ -104,13 +140,16 @@ def main():
     for x, y in training_dataset.take(1):
         print("x shape=", x.shape, "y shape=", y.shape)
 
-    train_size = int(0.8 * DATASET_SIZE)
-    val_size = int(0.2 * DATASET_SIZE)
+    train_size = int(0.8 * tf.data.experimental.cardinality(training_dataset).numpy()) # didn't realize I was splitting incorrectly because of the batches
 
     # tf take and shuffle: https://stackoverflow.com/questions/48213766/split-a-dataset-created-by-tensorflow-dataset-api-in-to-train-and-test
 
     train_dataset = training_dataset.take(train_size)
     val_dataset = training_dataset.skip(train_size)
+
+    print("train dataset size=", tf.data.experimental.cardinality(train_dataset).numpy())
+    print("val dataset size=", tf.data.experimental.cardinality(val_dataset).numpy())
+
 
     AUTOTUNE = tf.data.AUTOTUNE
 
@@ -142,11 +181,18 @@ def main():
       output, from_logits = _get_logits(
     """
 
+    """
+    very interesting plot, the accuracy actually gets substantially worse at 7 epochs and then levels off to where it was or slightly below where it was by 10
+    """
     history = model.fit(
         train_ds,
         validation_data=val_ds,
-        epochs=3
+        epochs=10
     )
+
+    print(history.history.keys())
+
+    plotbinary(history)
 
     print(model.summary()) # model.summary() with the parens
 
@@ -164,7 +210,6 @@ def main():
         print(idx.shape) # (1, 180, 180, 3) exactly what we wanted to see
 
     predictions = (model.predict(testing_dataset)) # cats is 0, dogs is 1
-    print(predictions[:20])
     predictions_binarized = np.vectorize(lambda pred: int(pred >= 0.5))(predictions)
     print(predictions_binarized)
     predictions_df = pd.DataFrame.from_records(predictions_binarized, columns=['label'])
@@ -172,6 +217,9 @@ def main():
     predictions_df.insert(0, 'id', predictions_df.pop('id'))
     print(predictions_df.head)
     print(predictions_df[:20])
+
+
+
 
 
 if __name__ == "__main__":
