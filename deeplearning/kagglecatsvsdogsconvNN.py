@@ -62,7 +62,7 @@ def preprocess(x, y):
   img = tf.image.resize(img, tf.constant([180, 180]))
   # not sure we need this line
   # img = img[..., np.newaxis] # had to do this: https://stackoverflow.com/questions/56874677/transform-3d-tensor-to-4d to get printout x shape= (479, 329, 3, 1) y shape= (2,)
-  img = tf.cast(img, dtype=tf.float32)
+  img = tf.cast(img, dtype=tf.float16)
   # y = tf.convert_to_tensor(y)
   # y = tf.one_hot(y, depth=2)
   # https://stats.stackexchange.com/questions/438875/one-hot-encoding-of-a-binary-feature-when-using-xgboost
@@ -80,7 +80,7 @@ def preprocess_test(path):
     img = tf.image.resize(img, tf.constant([180, 180]))
     img = img[np.newaxis, ...] # knew this would come in handy - actually it didn't I can specify batch size in predict y method
     # actually it did come in handy, specifying batch in predict seems dumb
-    img = tf.cast(img, dtype=tf.float32) # missed this for some reason uhh
+    img = tf.cast(img, dtype=tf.float16) # missed this for some reason uhh
     return img
 
 
