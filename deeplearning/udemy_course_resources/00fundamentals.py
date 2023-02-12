@@ -46,20 +46,19 @@ print(extra_dim_image_tensor.shape)
 
 #9
 tf.random.set_seed(42)
-vector = tf.random.uniform(shape=[10], minval=0, maxval=200, seed=42)
+vector = tf.random.uniform(shape=[10], minval=0, maxval=10, seed=42)
 print(vector[:])
 print('min position=', tf.argmin(vector))
 print('min value', vector[tf.argmin(vector)])
 
 # one hot encode the tensor in 9
-depth = vector.get_shape().as_list()[0]
-print(depth)
+depth = vector.get_shape().as_list()[0]; print(depth)
 tf.cast(vector, dtype=tf.int32)
-vector
-indices = vector.numpy()
+
+indices = tf.constant(vector.numpy())
 print(indices)
-one_hot_vector = tf.one_hot(tf.cast(vector, dtype=tf.int32), depth=10)
-one_hot_vector
+tf.one_hot(tf.cast(vector, dtype=tf.int32), depth=10)
+
 
 # this is the right answer no idea why I'm not seeing more 1's in my one-hot
 ten_tensor = tf.constant([0 ,1 ,2 ,3, 4, 9, 10, 0.1 , -000.1 , 6])
