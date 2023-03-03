@@ -1,15 +1,11 @@
-import numpy as np
 import tensorflow as tf
 import os
 import pathlib
-import matplotlib.pyplot as plt # workaround for image viewing in pycharm
 import glob
-import tensorflow_datasets as tfds
-import pandas as pd
 from time import time
 import tensorflow_hub as hub
 from kagglecatsvsdogsconvNN import get_label, preprocess
-import os
+
 
 print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
@@ -26,8 +22,8 @@ def get_dataset_partitions_tf(ds, ds_size, train_split=0.8, val_split=0.1, test_
         # Specify seed to always have the same split distribution between runs
         ds = ds.shuffle(shuffle_size, seed=12)
 
-    train_size = np.int64(train_split * ds_size)
-    val_size = np.int64(val_split * ds_size)
+    train_size = int(train_split * ds_size)
+    val_size = int(val_split * ds_size)
 
     train_ds = ds.take(train_size)
     val_ds = ds.skip(train_size).take(val_size)
@@ -54,12 +50,14 @@ def main():
     # print(labels)
 
     training_dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
-    training_dataset = training_dataset.map(preprocess).batch(batch_size=32)
+    training_dataset = training_dataset.map(preprocess).batch(batch_size=16)
 
     for x, y in training_dataset.take(1):
         print("x shape=", x.shape, "y shape=", y.shape)
 
-    train_ds, val_ds, test_ds = get_dataset_partitions_tf(training_dataset, ds_size=tf.data.experimental.cardinality(training_dataset).numpy(), shuffle=True)
+    train_ds, val_ds, test_ds = get_dataset_partitions_tf(training_dataset,
+                                                          ds_size=tf.data.experimental.cardinality(training_dataset).numpy(),
+                                                          shuffle=True)
 
     # tf take and shuffle: https://stackoverflow.com/questions/48213766/split-a-dataset-created-by-tensorflow-dataset-api-in-to-train-and-test
     # addendum for TF 2.9 https://stackoverflow.com/questions/64305438/warning-the-calling-iterator-did-not-fully-read-the-dataset-being-cached-in-or
@@ -85,9 +83,10 @@ def main():
 
 
     tensorboard = tf.keras.callbacks.TensorBoard(log_dir='logs/{}'.format(time()))
+    tensorboard_eval = tf.keras.callbacks.TensorBoard(log_dir='logs/evaluate/')
 
     model.compile(
-        optimizer='adam',
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss=tf.keras.losses.binary_crossentropy, # categorical is sparseCategoricalCrossEntropy, binary is binarycrossentropy
         metrics=['accuracy'])
 
@@ -98,8 +97,8 @@ def main():
         callbacks=[tensorboard]
     )
 
-
-
+    predictions = model.predict(test_ds)
+    model.evaluate(test_ds, callbacks=[tensorboard_eval])
 
 
 if __name__ == "__main__":
