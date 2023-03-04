@@ -93,3 +93,6 @@ venv.bak/
 
 # tensorflow logs
 logs/
+
+# kaggle output
+.csv
