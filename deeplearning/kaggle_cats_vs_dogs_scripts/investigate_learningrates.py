@@ -6,7 +6,7 @@ import glob
 from time import time
 import tensorflow_hub as hub
 from kagglecatsvsdogsconvNN import get_label, preprocess
-from catsdogsconv_w_tensorboard import get_dataset_partitions_tf
+from pythonfun.deeplearning.kaggle_cats_vs_dogs_scripts.catsdogsconv_w_tensorboard import get_dataset_partitions_tf
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import random as python_random
