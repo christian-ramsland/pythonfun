@@ -5,8 +5,10 @@ import glob
 from time import time
 import tensorflow_hub as hub
 from kagglecatsvsdogsconvNN import get_label, preprocess
+import numpy as np
+import pandas as pd
 
-
+tf.random.set_seed(12)
 print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
 print("Hub version: ", hub.__version__)
@@ -89,6 +91,7 @@ def main():
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss=tf.keras.losses.binary_crossentropy, # categorical is sparseCategoricalCrossEntropy, binary is binarycrossentropy
         metrics=['accuracy'])
+    tf.random.set_seed(12)
 
     history = model.fit(
         train_ds,
@@ -99,6 +102,12 @@ def main():
 
     predictions = model.predict(test_ds)
     model.evaluate(test_ds, callbacks=[tensorboard_eval])
+    predictions_binarized = np.vectorize(lambda pred: int(pred >= 0.5))(predictions)
+    predictions_df = pd.DataFrame.from_records(predictions_binarized, columns=['label'])
+    predictions_df['id'] = predictions_df.index + 1 # id starts at 1, index at 0
+    predictions_df.insert(0, 'id', predictions_df.pop('id'))
+    predictions_df.to_csv("submission.csv", index=False)
+
 
 
 if __name__ == "__main__":
