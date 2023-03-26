@@ -78,3 +78,20 @@ gnome shell stuff, I don't think .ICEauthority file was the culprit but it's nic
 ```
 https://unix.stackexchange.com/questions/549466/cant-login-through-gdm-loop-in-login-on-particular-user
 ```
+
+when attempting the following:
+```
+https://www.reddit.com/r/LocalLLaMA/comments/11o6o3f/how_to_install_llama_8bit_and_4bit/
+```
+
+get homebrew to be recognized 
+```
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+```
+
+nice little way of getting homebrew gcc to work with setup_cuda.py
+```
+https://www.reddit.com/r/Fedora/comments/usnu0x/comment/ig0t9y7/?utm_source=share&utm_medium=web2x&context=3
+```
+
+
