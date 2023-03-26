@@ -10,6 +10,9 @@ from pythonfun.deeplearning.kaggle_cats_vs_dogs_scripts.catsdogsconv_w_tensorboa
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import random as python_random
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+
 
 seed_value = 0
 os.environ['PYTHONHASHSEED']=str(seed_value)
@@ -162,6 +165,15 @@ def compare_learning_rates(pipeline, initial_learning_rate, final_learning_rate)
     exportmodel(model)
     return model
 
+def createROCplot(fpr, tpr, auc):
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr, tpr, label='Keras (area = {:.3f})'.format(auc))
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+    plt.show()
+
 def exportmodel(model):
     dataset_name = ''
     saved_model_path = './{}_cvd_'.format(dataset_name.replace('/', '_'))
@@ -173,7 +185,12 @@ if __name__ == "__main__":
     pipeline = input_pipeline()
     compare_learning_rates(pipeline, 0.0011, 0.0009)
     model = tf.keras.models.load_model(r"./_cvd_")
-    y_pred = tf.round(model.predict(pipeline.test_ds)).numpy()
+    y_pred_binary = tf.round(model.predict(pipeline.test_ds)).numpy()
     y_true = np.array([labels for _, labels in pipeline.test_ds.unbatch()])
-    plt = prettyConfusionMatrix(y_true, y_pred, False)
+    y_pred_prob = model.predict(pipeline.test_ds).ravel()
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob)
+    auc = auc(fpr, tpr)
+    createROCplot(fpr, tpr, auc)
+
+    plt = prettyConfusionMatrix(y_true, y_pred_binary, False)
     plt.show()
