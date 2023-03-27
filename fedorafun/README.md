@@ -21,6 +21,21 @@ sudo dnf module disable nvidia-driver
 sudo dnf -y install cuda
 ```
 
+in the event of a cuda upgrade, can find the appropriate one at
+https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Fedora&target_version=37&target_type=rpm_network
+or something like it, and the instructions for getting the most recent installer will be provided
+
+```
+sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora37/x86_64/cuda-fedora37.repo
+sudo dnf clean all
+sudo dnf update
+```
+what's worth having anyway are the dkms
+```
+sudo dnf makecache --refresh
+sudo dnf -y install dkms
+```
+
 I think you need to restart terminal/machine for the drivers to go into effect, but hopefully nvidia-smi works if you were to run it after the fact. then follow gpu instructions on tf page:
 https://www.tensorflow.org/install/pip
 ```

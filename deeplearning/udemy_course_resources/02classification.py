@@ -152,7 +152,7 @@ def problem2():
     data = gendata()
     dummies = pd.get_dummies(data['label'], drop_first=False, dtype=np.int64)
     df = pd.concat([data, dummies], axis=1)
-    df.drop(df.iloc[:,2:4], axis=1, inplace=True)
+    df.drop(df.iloc[:, 2:4], axis=1, inplace=True)
     df = df.rename({df.columns[2] : "label"}, axis=1)
     df = df.astype({col: 'int32' for col in df.select_dtypes('int64').columns})
     train_data, test_data = train_test_split(df, test_size=0.5, shuffle=True)
@@ -190,7 +190,7 @@ def problem3():
     labels = pd.DataFrame(y, columns=['label'])
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.RdYlBu)
     # plt.show()
-    data = pd.DataFrame({'X1':X[:,0], 'X2':X[:,1], 'label':y[:]})
+    data = pd.DataFrame({'X1':X[:, 0], 'X2':X[:, 1], 'label':y[:]})
     print(data.head)
     X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
 
@@ -205,7 +205,7 @@ def problem3():
                   metrics=['accuracy'])
 
     model.fit(X_train, Y_train, epochs=50)
-    model.evaluate(X_test,Y_test)
+    model.evaluate(X_test, Y_test)
 
 def plotimageandlabel(index, train_data, train_labels, class_names):
     plt.imshow(train_data[index])
@@ -225,7 +225,7 @@ def problem4():
     class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                    'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     class_count = len(np.unique(test_labels))
-    plotimageandlabel(30,train_data,train_labels,class_names)
+    plotimageandlabel(30, train_data, train_labels, class_names)
 
     model = tf.keras.Sequential([
         tf.keras.layers.Rescaling(1. / 255),
@@ -253,19 +253,96 @@ def problem4():
     plot = prettyConfusionMatrix(test_labels, y_preds, None)
     plot.show()
 
+    # no point in doing this redundant pipeline here
+    problem6(y_preds, test_labels, test_data, class_names)
 
-def problem5softmax():
-    tensor = tf.constant([16, 27, 78, 99, 189])
-    tensor_np = np.array(tensor)
-    denom_sum = tensor_np.sum()
-    for z in tensor_np:
-        print(z)
-        denom_sum + np.exp(z)
+def problem5(tensor):
+    tensor2 = vectorized_softmax(tensor)
+    tensor3 = tf.nn.softmax(tensor)
+    np.testing.assert_array_equal(tensor2.numpy(), tensor3.numpy())
+    return 0
+def vectorized_softmax(tensor):
+    tensor2 = np.exp(tensor) / np.sum(np.exp(tensor))
+    return tf.constant(tensor2, dtype=tf.float32)
+
+def softmax_normal_loop(tensor):
+    denom_sum = 0
+    for i in range(tensor.shape[-1]):
+        # print(tensor[i].numpy())
+        denom_sum = denom_sum + np.exp(tensor[i].numpy())
+    # print('denom_sum=', denom_sum)
     list = []
-    for z in tensor_np:
-        list[z] = np.exp(tensor_np[z]) / denom_sum
-        print(list[z])
+    for i in range(tensor.shape[-1]):
+        list.append(np.exp(tensor[i].numpy()) / denom_sum)
+    return tf.constant(np.array(list))
+
+def problem6(y_preds, test_labels, test_data, class_names):
+    fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(6, 9))
+    # axs.set_xticks(ticks, minor=False)
+    image_indices = np.array([0,1,72], dtype=np.int32)
+    for idx, item in enumerate(image_indices):
+        plot_image(image_indices[idx], y_preds[item], test_labels, test_data, class_names, axs[idx])
+    fig.show()
+
+def plot_image(i, predictions_array, true_label, img, class_names, ax):
+  true_label, img = true_label[i], img[i]
+  ax.grid(False)
+  ax.set(xticks=([]))
+  ax.set(yticks=([])) #, yticks([])
+
+  ax.imshow(img, cmap=plt.cm.binary)
+
+  predicted_label = np.argmax(predictions_array)
+  if predicted_label == true_label:
+    color = 'blue'
+  else:
+    color = 'red'
+
+  ax.set(xlabel = "{} {:2.0f}% ({})".format(class_names[predicted_label],
+                                100*np.max(predictions_array),
+                                class_names[true_label]))
+  return 0
+
+
+def plot_value_array(i, predictions_array, true_label):
+  true_label = true_label[i]
+  plt.grid(False)
+  plt.xticks(range(10))
+  plt.yticks([])
+  thisplot = plt.bar(range(10), predictions_array, color="#777777")
+  plt.ylim([0, 1])
+  predicted_label = np.argmax(predictions_array)
+
+  thisplot[predicted_label].set_color('red')
+  thisplot[true_label].set_color('blue')
+
+
+def problem7(test_labels, class_name, class_names, train_data):
+    class_idx = class_names.index(class_name)
+    all_instances_of_class = [i for i in range(len(test_labels)) if test_labels[i] == class_idx]
+    pick_three = all_instances_of_class[:3]
+    fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(6, 9))
+    fig.suptitle(class_name)
+    for idx, item in enumerate(pick_three):
+        # print('pick three index in this loop:', pick_three[idx])
+        img = train_data[pick_three[idx]]
+        axs[idx].grid(False)
+        axs[idx].set(xticks=([]))
+        axs[idx].set(yticks=([]))
+        axs[idx].imshow(img, cmap=plt.cm.binary)
+    fig.show()
 
 
 if __name__ == '__main__':
-    problem5softmax()
+    tensor = tf.constant([16, 27, 78, 99, 189], dtype=tf.float64)
+    problem5(tensor)
+    tensor2 = tf.constant([1, 2, 3, 4, 5], dtype=tf.float64)
+    problem5(tensor2)
+
+    # whatever close enough
+
+
+
+
+
+
