@@ -25,4 +25,41 @@ inclusion of maxpooling2D layers reduced the # of parameters by 50x and led to a
 
 The flatten layer simply removes any spatial organization of a feature map. A 4x4x10 3D tensor becomes a vector with
 160 values in it.
+
+
+
+Question 2:
+
+    What is the kernel size?
+    What is the stride?
+    How could you adjust each of these in TensorFlow code?
+
+kernel size is the dimensions of the sliding window over the input.
+- prefer smaller kernels in order to stack more layers deeper in the network to learn more complex features.
+stride indicates how many pixels the kernel should be shifted over at a time, a larger stride is akin to downsampling
+or compressing the media.
+- ensure that kernel slides across the input symetrically when implementing a CNN.
+you would change it with the conv2d layer params
+tf.keras.layers.Conv2D(
+    filters,
+    kernel_size,
+    strides=(1, 1),
+    padding="valid",
+    data_format=None,
+    dilation_rate=(1, 1),
+    groups=1,
+    activation=None,
+    use_bias=True,
+    kernel_initializer="glorot_uniform",
+    bias_initializer="zeros",
+    kernel_regularizer=None,
+    bias_regularizer=None,
+    activity_regularizer=None,
+    kernel_constraint=None,
+    bias_constraint=None,
+    **kwargs
+)
+kernel_size: An integer or tuple/list of 2 integers, specifying the height and width of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
+strides: An integer or tuple/list of 2 integers, specifying the strides of the convolution along the height and width. Can be a single integer to specify the same value for all spatial dimensions. Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1.
+
 """
